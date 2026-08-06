@@ -6,16 +6,11 @@ A TesmioLoader plugin for **Workers & Resources: Soviet Republic**.
 Rolling Stock Road Transport lets suitable road vehicle carriers transport railway wagons and locomotives. Its primary use is bootstrapping an isolated railway in realistic mode: buy rolling stock at customs, carry it by road, and deliver it into a train depot.
 
 Steam Workshop item: https://steamcommunity.com/sharedfiles/filedetails/?id=3778366463  
-Issue / error discussion: https://steamcommunity.com/workshop/filedetails/discussion/3778366463/589560061703165737/  
-Repository: https://github.com/Ultimate-Universe/WRSR-TesmioLoader-RollingStockRoadTransport
 
 ## Requirements
 
 - Workers & Resources: Soviet Republic
 - TesmioLoader
-- 64-bit Windows game build
-- The current v1.0.0 offsets/signatures were developed and tested against `SOVIET64.exe` version `1.1.1.7`.
-- TesmioLoader plugin API version `3`.
 
 Game updates can move native functions or change validation bytes. The plugin fails closed where possible when an expected hook/patch signature is not present.
 
@@ -72,21 +67,6 @@ Payload is only half of the compatibility test. The game gives vehicle carriers 
 A heavy transporter with a short defined vehicle deck can therefore carry fewer wagon types than a lighter truck with a longer defined deck.
 
 This is expected behaviour. The quickest compatibility check is the truck's **Vehicle type selection** menu.
-
-## Current-year availability
-
-The selector retains the game's rolling-stock availability rules. A wagon/locomotive must be available at the current game date before it is offered for that truck, then it must also pass the truck's payload and deck-length limits.
-
-Workshop rolling stock is evaluated through the same imported-asset list when it uses the normal top-level rail vehicle definitions.
-
-## What the plugin does not do
-
-- It does not turn ordinary cargo trucks into vehicle carriers.
-- It does not provide unlimited payload.
-- It does not ignore longitudinal deck length.
-- It does not permanently change railway depots into road depots.
-- It does not use a per-frame building highlighter/world scan to make depot delivery work.
-- It does not redistribute game executables, decompiled code, or game assets.
 
 ## Configuration
 
@@ -178,81 +158,9 @@ The exact route **Vehicle type selection** popup is hooked. The native list is b
 
 The list therefore functions as the practical compatibility viewer for the selected carrier.
 
-### Actual pickup
-
-- RVA `0x0068A320` — `FUN_14068a320`
-- wagon carried-scale parity patch near RVA `0x0068A68C`
-- execution gates at RVA `0x006969C6` and `0x006972DC`
-
-The execution gates admit types `3` and `4` into the existing vehicle-loading pipeline. Before native attachment, v1.0.0 verifies the same shared weight/length predicate, including already-carried rolling stock. After that predicate passes, transverse dimensions are temporarily narrowed only for the native placement operation, then restored immediately. Native carried-vector/state updates remain in control.
-
-### Railway-depot route support
-
-- static route patch near RVA `0x002B5806` inside `FUN_1402b50b0`
-- building compatibility hook RVA `0x003E2860` — `FUN_1403e2860`
-
-The road route editor is allowed to use railway depots as destinations for eligible vehicle carriers without permanently changing the building type.
-
-### Railway-depot unloading
-
-- RVA `0x0067DA00` — `FUN_14067da00` (native route-stop advance)
-- native carried-vehicle unload path RVA `0x0068A010` — `FUN_14068a010`
-
-The working delivery trigger is the native route-stop advance event. Immediately before the game advances away from a completed railway-depot stop, the plugin checks the route-owning vehicle and attached carrier sections for rail cargo. Eligible cargo is passed through the game's native depot-row compatibility/capacity/insertion routines.
-
-This avoids the earlier development approaches that attempted to infer arrival using per-frame route/highlight state.
-
-### Depot storage
-
-The mod does not implement a parallel custom rail-storage format. Railway-depot row capacity and insertion remain native game behaviour. If the depot cannot accept a piece of rolling stock, the plugin does not intentionally bypass that storage limitation.
-
-## Performance design
-
-The release deliberately avoids the expensive experimental approach used during early development.
-
-- No per-frame building-highlight hook.
-- No continuous world/building scan.
-- No permanent depot-type mutation.
-- Selector work happens when the selector is opened.
-- Depot transfer happens at the native route-stop advance event.
-- Debug traces are capped.
-- Static patches validate expected bytes before modification.
-
-## Build
-
-The repository contains a `build.bat` intended for a Visual Studio x64 Native Tools command prompt.
-
-```bat
-build.bat
-```
-
 It compiles `src/RollingStockRoadTransport.cpp` and produces the DLL and INI in `build\`.
 
 The repository also contains the tiny Kernel32 import objects/library needed by the no-default-runtime build under `tooling\imports\`.
-
-The published binary is built as a standard uncompressed x64 Windows DLL.
-
-## Repository layout
-
-```text
-README.md
-LICENSE
-CHANGELOG.md
-build.bat
-src/
-  RollingStockRoadTransport.cpp
-  RollingStockRoadTransport.ini
-include/
-  tesmio_api.h
-tooling/
-  imports/
-release/
-  v1.0.0/
-    plugins/
-      RollingStockRoadTransport.dll
-      RollingStockRoadTransport.ini
-    SHA256SUMS.txt
-```
 
 ## Reporting bugs
 
@@ -278,4 +186,4 @@ Please include:
 
 Rolling Stock Road Transport is released under the **GNU General Public License v3.0**. See `LICENSE`.
 
-Workers & Resources: Soviet Republic, TesmioLoader, Steam, and their respective names/assets belong to their owners. This project is not affiliated with or endorsed by 3DIVISION, Hooded Horse, Valve, or the TesmioLoader author.
+Workers & Resources: Soviet Republic, TesmioLoader, Steam, and their respective names/assets belong to their owners. This project is not affiliated with or endorsed by 3DIVISION, or Hooded Horse.
